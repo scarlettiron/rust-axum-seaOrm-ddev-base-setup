@@ -1,0 +1,17 @@
+version: "3.6"
+
+services:
+  web:
+    environment:
+      CARGO_HOME: /var/lib/rust/.cargo
+      RUSTUP_HOME: /var/lib/rust/.rustup
+      CARGO_TARGET_DIR: /var/lib/rust/target
+    volumes:
+      - rust-cargo:/var/lib/rust/.cargo
+      - rust-rustup:/var/lib/rust/.rustup
+      - rust-target:/var/lib/rust/target
+
+volumes:
+  rust-cargo:
+  rust-rustup:
+  rust-target:

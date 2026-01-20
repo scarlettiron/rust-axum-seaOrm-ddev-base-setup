@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Load cargo env if it exists (rustup install creates this)
+if [ -f "$HOME/.cargo/env" ]; then
+  source "$HOME/.cargo/env"
+fi
+
+# If cargo still isn't available, give a clear error
+if ! command -v cargo >/dev/null 2>&1; then
+  echo "cargo not found in the web container."
+  echo "Install Rust first (example):"
+  echo "  ddev exec bash -lc \"curl https://sh.rustup.rs -sSf | sh -s -- -y\""
+  echo "Then restart shell usage:"
+  echo "  ddev exec bash -lc \"source \$HOME/.cargo/env && cargo --version\""
+  exit 1
+fi
+
+cargo "$@"

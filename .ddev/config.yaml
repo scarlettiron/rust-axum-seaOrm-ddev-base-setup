@@ -1,0 +1,23 @@
+name: erp-proxy-server
+type: php
+docroot: ""
+php_version: "8.2"
+webserver_type: nginx-fpm
+router_http_port: "80"
+router_https_port: "443"
+xdebug_enabled: false
+additional_hostnames: []
+additional_fqdns: []
+performance_mode: mutagen
+database:
+  type: postgres
+  version: "15"
+webimage_extra_packages:
+  - build-essential
+web_environment:
+  - RUST_LOG=debug
+  - DATABASE_URL=postgres://db:db@db:5432/db
+  - PORT=3000
+upload_dirs:
+  - public/uploads
+  - storage

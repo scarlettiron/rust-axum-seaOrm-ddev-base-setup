@@ -1,0 +1,24 @@
+ARG BASE_IMAGE
+FROM $BASE_IMAGE
+
+# Set Rust environment variables to match docker-compose.rust.yaml
+ENV CARGO_HOME=/var/lib/rust/.cargo \
+    RUSTUP_HOME=/var/lib/rust/.rustup \
+    CARGO_TARGET_DIR=/var/lib/rust/target \
+    PATH=/var/lib/rust/.cargo/bin:$PATH
+
+# Create rust directories with proper ownership
+RUN mkdir -p /var/lib/rust/.cargo /var/lib/rust/.rustup /var/lib/rust/target && \
+    chown -R $DDEV_UID:$DDEV_GID /var/lib/rust
+
+# Switch to non-root user for Rust installation
+USER $DDEV_UID:$DDEV_GID
+
+# Install Rust using rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --no-modify-path
+
+# Verify installation
+RUN rustc --version && cargo --version
+
+# Switch back to root for any remaining container setup
+USER root
