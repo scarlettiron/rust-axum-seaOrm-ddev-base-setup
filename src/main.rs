@@ -4,6 +4,7 @@ mod config;
 mod routes;
 
 use axum::middleware;
+use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber;
@@ -12,6 +13,7 @@ use tracing_subscriber;
 #[derive(Clone)]
 pub struct AppState {
     pub db: DatabaseConnection,
+    pub redis: ConnectionManager,
 }
 
 #[tokio::main]
@@ -30,7 +32,12 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
-    let state = AppState { db };
+    //connect to Redis
+    let redis = config::redis_connect()
+        .await
+        .expect("Failed to connect to Redis");
+
+    let state = AppState { db, redis };
 
     //create application router with middleware
     let app = routes::create_router(state)
@@ -49,7 +56,7 @@ async fn main() {
         .await
         .expect("Failed to bind to address");
 
-    axum::serve(listener, app)
+    axum::serve(listener, app.into_make_service())
         .await
         .expect("Server failed to start");
 }
