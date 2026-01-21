@@ -1,11 +1,9 @@
 mod auth;
 mod admin;
+mod config;
 mod routes;
 
-use tower_http::{
-    cors::CorsLayer,
-    trace::TraceLayer,
-};
+use tower_http::trace::TraceLayer;
 use tracing_subscriber;
 
 #[tokio::main]
@@ -18,7 +16,7 @@ async fn main() {
 
     // Create application router with middleware
     let app = routes::create_router()
-        .layer(CorsLayer::permissive())
+        .layer(config::cors_layer())
         .layer(TraceLayer::new_for_http());
 
     // Get port from environment or use default
