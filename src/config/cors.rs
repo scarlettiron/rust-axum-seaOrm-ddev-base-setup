@@ -2,10 +2,10 @@ use axum::http::{HeaderName, HeaderValue, Method};
 use std::env;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 
-/// Default origin if CORS_ALLOWED_ORIGINS env var is not set
+///default origin if CORS_ALLOWED_ORIGINS env var is not set
 const DEFAULT_ORIGIN: &str = "https://erp-proxy-server.ddev.site";
 
-/// Allowed HTTP methods
+///allowed HTTP methods
 const ALLOWED_METHODS: &[Method] = &[
     Method::GET,
     Method::POST,
@@ -15,7 +15,7 @@ const ALLOWED_METHODS: &[Method] = &[
     Method::PATCH,
 ];
 
-/// Allowed headers
+///allowed headers
 const ALLOWED_HEADERS: &[&str] = &[
     "authorization",
     "content-type",
@@ -25,8 +25,8 @@ const ALLOWED_HEADERS: &[&str] = &[
     "origin",
 ];
 
-/// Gets allowed origins from CORS_ALLOWED_ORIGINS env var (comma-separated)
-/// Falls back to default DDEV project route if not set
+///gets allowed origins from CORS_ALLOWED_ORIGINS env var (comma-separated)
+///falls back to default DDEV project route if not set
 fn get_allowed_origins() -> Vec<HeaderValue> {
     match env::var("CORS_ALLOWED_ORIGINS") {
         Ok(origins) => origins
@@ -39,7 +39,7 @@ fn get_allowed_origins() -> Vec<HeaderValue> {
     }
 }
 
-/// Creates a configured CORS layer
+///creates a configured CORS layer
 pub fn cors_layer() -> CorsLayer {
     let origins = get_allowed_origins();
 
