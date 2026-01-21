@@ -1,6 +1,7 @@
 name: erp-proxy-server
 type: php
 docroot: ""
+timezone: "UTC"
 php_version: "8.2"
 webserver_type: nginx-fpm
 router_http_port: "80"
