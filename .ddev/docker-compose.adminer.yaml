@@ -1,0 +1,23 @@
+version: '3.6'
+
+services:
+  adminer:
+    container_name: ddev-${DDEV_SITENAME}-adminer
+    image: adminer:latest
+    restart: unless-stopped
+    expose:
+      - "8080"
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: $DDEV_APPROOT
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+      ADMINER_DESIGN: nette
+      VIRTUAL_HOST: $DDEV_HOSTNAME
+      HTTP_EXPOSE: 9100:8080
+      HTTPS_EXPOSE: 9101:8080
+      DDEV_DB_NAME: db
+      DDEV_DB_USER: db
+      DDEV_DB_PASS: db
+    depends_on:
+      - db
