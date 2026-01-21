@@ -1,9 +1,9 @@
 mod auth;
 mod admin;
 mod config;
+mod middleware;
 mod routes;
 
-use axum::middleware;
 use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;
 use tower_http::trace::TraceLayer;
@@ -41,9 +41,10 @@ async fn main() {
 
     //create application router with middleware
     let app = routes::create_router(state)
-        .layer(middleware::from_fn(config::allowed_hosts_middleware))
+        .layer(axum::middleware::from_fn(config::allowed_hosts_middleware))
         .layer(config::cors_layer())
-        .layer(TraceLayer::new_for_http());
+        .layer(TraceLayer::new_for_http())
+        .layer(axum::middleware::from_fn(middleware::request_logging_middleware));
 
     //get port from environment or use default
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
