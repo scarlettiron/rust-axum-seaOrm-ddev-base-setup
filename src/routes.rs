@@ -1,8 +1,24 @@
 use axum::{routing::get, Router, http::StatusCode, Json};
 use serde_json::{json, Value};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 use crate::AppState;
+use crate::openapi::ApiDoc;
 
-async fn healthcheck() -> (StatusCode, Json<Value>) {
+#[derive(utoipa::ToSchema)]
+pub struct HealthCheckResponse {
+    message: String,
+}
+
+#[utoipa::path(
+    get,
+    path = "/healthcheck",
+    tag = "Health",
+    responses(
+        (status = 200, description = "Application is running", body = HealthCheckResponse)
+    )
+)]
+pub async fn healthcheck() -> (StatusCode, Json<Value>) {
     (
         StatusCode::OK,
         Json(json!({
@@ -13,6 +29,7 @@ async fn healthcheck() -> (StatusCode, Json<Value>) {
 
 pub fn create_router(state: AppState) -> Router {
     Router::new()
+        .merge(SwaggerUi::new("/local/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi()))
         .route("/healthcheck", get(healthcheck))
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())

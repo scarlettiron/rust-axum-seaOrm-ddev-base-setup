@@ -2,6 +2,7 @@ mod auth;
 mod admin;
 mod config;
 mod middleware;
+mod openapi;
 mod routes;
 
 use redis::aio::ConnectionManager;

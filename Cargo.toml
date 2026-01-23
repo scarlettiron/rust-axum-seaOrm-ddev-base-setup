@@ -24,3 +24,6 @@ chrono = "0.4"
 
 entity = { path = "entity" }
 migration = { path = "migration" } # for running migrations at startup
+utoipa = { version = "5.4.0", features = ["axum_extras", "chrono"] }
+utoipa-swagger-ui = { version = "6.0.0", features = ["axum"] }
+cargo-watch = "8.5.3"
