@@ -14,8 +14,8 @@ async fn healthcheck() -> (StatusCode, Json<Value>) {
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/healthcheck", get(healthcheck))
-        .route("/", get(healthcheck))
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())
+        .route("/", get(healthcheck))
         .with_state(state)
 }
