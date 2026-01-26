@@ -3,7 +3,7 @@ use sea_orm::{
     EntityTrait, QueryFilter, Set,
 };
 use entity::api_token;
-use entity::sea_orm_active_enums::Enum as ApiTokenStatus;
+use entity::sea_orm_active_enums::ApiTokenStatusEnum as ApiTokenStatus;
 use uuid::Uuid;
 
 

@@ -3,8 +3,26 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "enum")]
-pub enum Enum {
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "allowed_ip_address_status_enum"
+)]
+pub enum AllowedIpAddressStatusEnum {
+    #[sea_orm(string_value = "active")]
+    Active,
+    #[sea_orm(string_value = "inactive")]
+    Inactive,
+    #[sea_orm(string_value = "banned")]
+    Banned,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "api_token_status_enum"
+)]
+pub enum ApiTokenStatusEnum {
     #[sea_orm(string_value = "active")]
     Active,
     #[sea_orm(string_value = "inactive")]
