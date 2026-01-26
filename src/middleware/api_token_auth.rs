@@ -11,7 +11,7 @@ use crate::security::ApiTokenService;
 
 //extracts API token from request headers
 //checks Authorization header (Bearer token) and X-API-Key header
-fn extract_token(headers: &HeaderMap) -> Option<String> {
+fn extract_api_token(headers: &HeaderMap) -> Option<String> {
     //check Authorization header (Bearer token)
     if let Some(auth_header) = headers.get("authorization") {
         if let Ok(auth_str) = auth_header.to_str() {
@@ -86,7 +86,7 @@ async fn extract_body(body: Body) -> (String, Body) {
 }
 
 //list of public routes that don't require API token authentication
-fn is_public_route(path: &str) -> bool {
+fn is_api_token_public_route(path: &str) -> bool {
     let public_routes = [
         "/",
         "/healthcheck",
@@ -110,12 +110,12 @@ pub async fn api_token_auth_middleware(
     let path = request.uri().path();
     
     //skip authentication for public routes
-    if is_public_route(path) {
+    if is_api_token_public_route(path) {
         return next.run(request).await;
     }
     
-    //extract token from headers
-    let token = match extract_token(request.headers()) {
+    //extract API token from headers
+    let api_token = match extract_api_token(request.headers()) {
         Some(t) => t,
         None => {
             //no token provided - critically log all details
@@ -152,15 +152,15 @@ pub async fn api_token_auth_middleware(
         }
     };
 
-    //validate token
-    let service = ApiTokenService::new(state.db.clone());
-    let is_valid = match service.is_token_valid(&token, None).await {
+    //validate API token
+    let api_token_service = ApiTokenService::new(state.db.clone());
+    let is_api_token_valid = match api_token_service.is_token_valid(&api_token, None).await {
         Ok(valid) => valid,
         Err(e) => {
             //database error - log and reject
             tracing::error!(
                 error = %e,
-                "Database error while validating token"
+                "Database error while validating API token"
             );
             return Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
@@ -169,8 +169,8 @@ pub async fn api_token_auth_middleware(
         }
     };
 
-    if !is_valid {
-        //token is invalid - critically log all details
+    if !is_api_token_valid {
+        //API token is invalid - critically log all details
         let client_ip = get_client_ip(&request);
         let route = request.uri().path().to_string();
         let method = request.method().to_string();
@@ -190,7 +190,7 @@ pub async fn api_token_auth_middleware(
         tracing::error!(
             severity = "CRITICAL",
             event = "unauthorized_api_token_attempt",
-            api_token = %token,
+            api_token = %api_token,
             client_ip = %client_ip,
             route = %full_path,
             method = %method,
@@ -205,6 +205,6 @@ pub async fn api_token_auth_middleware(
             .unwrap();
     }
 
-    //token is valid - proceed with request (body is still intact since we didn't extract it)
+    //API token is valid - proceed with request (body is still intact since we didn't extract it)
     next.run(request).await
 }

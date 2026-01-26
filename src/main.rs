@@ -42,12 +42,32 @@ async fn main() {
     let state = AppState { db, redis };
 
     //create application router with middleware
-    //API token auth middleware is applied globally but skips public routes
-    let app = routes::create_router(state.clone())
-        .layer(axum::middleware::from_fn_with_state(
+    let mut app = routes::create_router(state.clone());
+
+    //apply API token authentication middleware if enabled
+    if config::is_api_token_auth_enabled() {
+        tracing::info!("API token authentication middleware enabled");
+        app = app.layer(axum::middleware::from_fn_with_state(
             state.clone(),
             middleware::api_token_auth_middleware,
-        ))
+        ));
+    } else {
+        tracing::info!("API token authentication middleware disabled");
+    }
+
+    //apply IP address authentication middleware if enabled
+    if config::is_ip_address_auth_enabled() {
+        tracing::info!("IP address authentication middleware enabled");
+        app = app.layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            middleware::ip_address_auth_middleware,
+        ));
+    } else {
+        tracing::info!("IP address authentication middleware disabled");
+    }
+
+    //apply other middleware
+    app = app
         .layer(axum::middleware::from_fn(config::allowed_hosts_middleware))
         .layer(config::cors_layer())
         .layer(TraceLayer::new_for_http())
