@@ -118,11 +118,32 @@ pub async fn api_token_auth_middleware(
     let token = match extract_token(request.headers()) {
         Some(t) => t,
         None => {
-            //no token provided - return unauthorized
-            tracing::warn!(
-                route = %request.uri().path(),
-                method = %request.method(),
-                "Request rejected: No API token provided"
+            //no token provided - critically log all details
+            let client_ip = get_client_ip(&request);
+            let route = request.uri().path().to_string();
+            let method = request.method().to_string();
+            let headers = format_headers(request.headers());
+            let query = request.uri().query().unwrap_or("").to_string();
+            let full_path = if query.is_empty() {
+                route.clone()
+            } else {
+                format!("{}?{}", route, query)
+            };
+
+            //extract body for logging (this consumes it, but we'll return error anyway so it's fine)
+            let body = std::mem::replace(request.body_mut(), Body::empty());
+            let (body_content, _) = extract_body(body).await;
+
+            //critical log with all security-relevant information
+            tracing::error!(
+                severity = "CRITICAL",
+                event = "unauthorized_api_token_missing",
+                client_ip = %client_ip,
+                route = %full_path,
+                method = %method,
+                headers = %headers,
+                body = %body_content,
+                "Unauthorized request: No API token provided"
             );
             return Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
