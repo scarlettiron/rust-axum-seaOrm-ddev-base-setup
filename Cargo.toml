@@ -20,10 +20,12 @@ sea-orm = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-rustls"
 dotenvy = "0.15"
 redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
 chrono = "0.4"
+uuid = { version = "1.10", features = ["v4", "serde"] }
 
 
 entity = { path = "entity" }
 migration = { path = "migration" } # for running migrations at startup
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono"] }
-utoipa-swagger-ui = { version = "6.0.0", features = ["axum"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 cargo-watch = "8.5.3"
+

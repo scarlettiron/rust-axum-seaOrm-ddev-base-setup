@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Load cargo env if it exists (rustup install creates this)
+if [ -f "$HOME/.cargo/env" ]; then
+  source "$HOME/.cargo/env"
+fi
+
+sea-orm-cli $@

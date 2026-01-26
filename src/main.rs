@@ -4,6 +4,7 @@ mod config;
 mod middleware;
 mod openapi;
 mod routes;
+mod security;
 
 use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;
@@ -41,7 +42,12 @@ async fn main() {
     let state = AppState { db, redis };
 
     //create application router with middleware
-    let app = routes::create_router(state)
+    //API token auth middleware is applied globally but skips public routes
+    let app = routes::create_router(state.clone())
+        .layer(axum::middleware::from_fn_with_state(
+            state.clone(),
+            middleware::api_token_auth_middleware,
+        ))
         .layer(axum::middleware::from_fn(config::allowed_hosts_middleware))
         .layer(config::cors_layer())
         .layer(TraceLayer::new_for_http())

@@ -1,15 +1,15 @@
 use utoipa::OpenApi;
 
 use crate::routes::HealthCheckResponse;
-use crate::auth::{health_check as auth_health_check, services::AuthHealthResponse};
-use crate::admin::{health_check as admin_health_check, services::AdminHealthResponse};
+use crate::auth::services::{health_check as auth_health_check, AuthHealthResponse};
+use crate::admin::services::{health_check as admin_health_check, AdminHealthResponse};
 
 #[derive(OpenApi)]
 #[openapi(
     paths(
         crate::routes::healthcheck,
-        auth_health_check,
-        admin_health_check,
+        crate::auth::services::health_check,
+        crate::admin::services::health_check,
     ),
     components(schemas(
         HealthCheckResponse,

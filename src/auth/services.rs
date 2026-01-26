@@ -8,9 +8,7 @@ pub struct AuthHealthResponse {
     module: String,
 }
 
-/// Auth module health check endpoint
-/// 
-/// Returns the health status of the authentication module.
+
 #[utoipa::path(
     get,
     path = "/auth/health",

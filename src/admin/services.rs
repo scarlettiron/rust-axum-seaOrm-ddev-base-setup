@@ -8,9 +8,6 @@ pub struct AdminHealthResponse {
     module: String,
 }
 
-/// Admin module health check endpoint
-/// 
-/// Returns the health status of the admin module.
 #[utoipa::path(
     get,
     path = "/admin/health",

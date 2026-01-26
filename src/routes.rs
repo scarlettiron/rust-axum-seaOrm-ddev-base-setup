@@ -28,8 +28,11 @@ pub async fn healthcheck() -> (StatusCode, Json<Value>) {
 }
 
 pub fn create_router(state: AppState) -> Router {
+    let swagger_ui = SwaggerUi::new("/local/swagger-ui")
+        .url("/api-doc/openapi.json", ApiDoc::openapi());
+    
     Router::new()
-        .merge(SwaggerUi::new("/local/swagger-ui").url("/api-doc/openapi.json", ApiDoc::openapi()))
+        .merge(swagger_ui)
         .route("/healthcheck", get(healthcheck))
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())
