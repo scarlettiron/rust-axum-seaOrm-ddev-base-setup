@@ -36,6 +36,7 @@ pub fn create_router(state: AppState) -> Router {
         .route("/healthcheck", get(healthcheck))
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())
+        .nest("/tenant", crate::tenant::create_router())
         .route("/", get(healthcheck))
         .with_state(state)
 }

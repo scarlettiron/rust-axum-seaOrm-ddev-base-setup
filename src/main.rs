@@ -5,6 +5,7 @@ mod middleware;
 mod openapi;
 mod routes;
 mod security;
+mod tenant;
 
 use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;
