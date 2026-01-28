@@ -30,3 +30,11 @@ pub enum ApiTokenStatusEnum {
     #[sea_orm(string_value = "banned")]
     Banned,
 }
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "enum")]
+pub enum Enum {
+    #[sea_orm(string_value = "active")]
+    Active,
+    #[sea_orm(string_value = "removed")]
+    Removed,
+}

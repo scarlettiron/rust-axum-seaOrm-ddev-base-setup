@@ -5,6 +5,7 @@ mod m20220126_000002_make_api_token_unique;
 mod m20220126_000003_add_default_uuid_to_api_token;
 mod m20220126_000004_add_allowed_ip_addresses;
 mod m20220126_000005_rename_api_token_enum;
+mod m20260128_0000006_create_tenant_table;
 
 pub struct Migrator;
 
@@ -16,7 +17,8 @@ impl MigratorTrait for Migrator {
            Box::new(m20220126_000002_make_api_token_unique::Migration),
            Box::new(m20220126_000003_add_default_uuid_to_api_token::Migration),
            Box::new(m20220126_000004_add_allowed_ip_addresses::Migration),
-           Box::new(m20220126_000005_rename_api_token_enum::Migration)
+           Box::new(m20220126_000005_rename_api_token_enum::Migration),
+           Box::new(m20260128_0000006_create_tenant_table::Migration)
         ]
     }
 }

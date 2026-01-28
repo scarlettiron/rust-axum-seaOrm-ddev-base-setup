@@ -2,3 +2,4 @@
 
 pub use super::allowed_ip_address::Entity as AllowedIpAddress;
 pub use super::api_token::Entity as ApiToken;
+pub use super::tenant::Entity as Tenant;
