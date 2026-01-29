@@ -38,3 +38,85 @@ pub enum Enum {
     #[sea_orm(string_value = "removed")]
     Removed,
 }
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "erp_connection_auth_status"
+)]
+pub enum ErpConnectionAuthStatus {
+    #[sea_orm(string_value = "connected")]
+    Connected,
+    #[sea_orm(string_value = "needs_reauth")]
+    NeedsReauth,
+    #[sea_orm(string_value = "revoked")]
+    Revoked,
+    #[sea_orm(string_value = "error")]
+    Error,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "erp_connection_status"
+)]
+pub enum ErpConnectionStatus {
+    #[sea_orm(string_value = "removed")]
+    Removed,
+    #[sea_orm(string_value = "active")]
+    Active,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "erp_environment")]
+pub enum ErpEnvironment {
+    #[sea_orm(string_value = "production")]
+    Production,
+    #[sea_orm(string_value = "sandbox")]
+    Sandbox,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "erp_provider")]
+pub enum ErpProvider {
+    #[sea_orm(string_value = "quickbooks")]
+    Quickbooks,
+    #[sea_orm(string_value = "dmsi")]
+    Dmsi,
+    #[sea_orm(string_value = "sap")]
+    Sap,
+    #[sea_orm(string_value = "salesforce")]
+    Salesforce,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "erp_provider_auth_type"
+)]
+pub enum ErpProviderAuthType {
+    #[sea_orm(string_value = "oauth")]
+    Oauth,
+    #[sea_orm(string_value = "oauth2")]
+    Oauth2,
+    #[sea_orm(string_value = "username_password")]
+    UsernamePassword,
+    #[sea_orm(string_value = "certificate")]
+    Certificate,
+    #[sea_orm(string_value = "api_token")]
+    ApiToken,
+    #[sea_orm(string_value = "session_token")]
+    SessionToken,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "erp_provider_type")]
+pub enum ErpProviderType {
+    #[sea_orm(string_value = "desktop")]
+    Desktop,
+    #[sea_orm(string_value = "api")]
+    Api,
+    #[sea_orm(string_value = "edi")]
+    Edi,
+    #[sea_orm(string_value = "idoc")]
+    Idoc,
+    #[sea_orm(string_value = "webconnector")]
+    Webconnector,
+}
