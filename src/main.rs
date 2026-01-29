@@ -1,6 +1,7 @@
 mod auth;
 mod admin;
 mod config;
+mod connection_identity;
 mod middleware;
 mod openapi;
 mod routes;
