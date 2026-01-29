@@ -24,6 +24,9 @@ async fn main() {
     //load environment variables from .env file
     dotenvy::dotenv().ok();
 
+    //initialize central config from environment variables
+    config::env::init();
+
     //initialize tracing
     tracing_subscriber::fmt()
         .with_target(false)
@@ -73,13 +76,13 @@ async fn main() {
     //apply other middleware
     app = app
         .layer(axum::middleware::from_fn(middleware::allowed_hosts_middleware))
-        .layer(config::cors_layer())
+        .layer(middleware::cors_layer())
         .layer(TraceLayer::new_for_http())
         .layer(axum::middleware::from_fn(middleware::request_logging_middleware))
         .layer(axum::middleware::from_fn(middleware::metrics_middleware));
 
-    //get port from environment or use default
-    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    //get port from central config
+    let port = &config::env::get().server.port;
     let addr = format!("0.0.0.0:{}", port);
 
     tracing::info!("Server starting on {}", addr);

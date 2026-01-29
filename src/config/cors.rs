@@ -1,56 +1,25 @@
-use axum::http::{HeaderName, HeaderValue, Method};
-use std::env;
-use tower_http::cors::{AllowOrigin, CorsLayer};
+use axum::http::{HeaderValue, Method};
+use super::env;
 
-///default origin if CORS_ALLOWED_ORIGINS env var is not set
-const DEFAULT_ORIGIN: &str = "https://erp-proxy-server.ddev.site";
-
-///allowed HTTP methods
-const ALLOWED_METHODS: &[Method] = &[
-    Method::GET,
-    Method::POST,
-    Method::PUT,
-    Method::DELETE,
-    Method::OPTIONS,
-    Method::PATCH,
-];
-
-///allowed headers
-const ALLOWED_HEADERS: &[&str] = &[
-    "authorization",
-    "content-type",
-    "x-requested-with",
-    "x-custom-host",
-    "accept",
-    "origin",
-];
-
-///gets allowed origins from CORS_ALLOWED_ORIGINS env var (comma-separated)
-///falls back to default DDEV project route if not set
-fn get_allowed_origins() -> Vec<HeaderValue> {
-    match env::var("CORS_ALLOWED_ORIGINS") {
-        Ok(origins) => origins
-            .split(',')
-            .map(|s| s.trim())
-            .filter(|s| !s.is_empty())
-            .filter_map(|origin| origin.parse().ok())
-            .collect(),
-        Err(_) => vec![DEFAULT_ORIGIN.parse().unwrap()],
-    }
+///gets allowed origins from central config as HeaderValues
+pub fn get_allowed_origins() -> Vec<HeaderValue> {
+    env::get().cors.allowed_origins
+        .iter()
+        .filter_map(|origin| origin.parse().ok())
+        .collect()
 }
 
-///creates a configured CORS layer
-pub fn cors_layer() -> CorsLayer {
-    let origins = get_allowed_origins();
+///gets allowed methods from central config
+pub fn get_allowed_methods() -> Vec<Method> {
+    env::get().cors.allowed_methods.clone()
+}
 
-    let headers: Vec<HeaderName> = ALLOWED_HEADERS
-        .iter()
-        .filter_map(|header| header.parse().ok())
-        .collect();
+///gets allowed headers from central config
+pub fn get_allowed_headers() -> Vec<String> {
+    env::get().cors.allowed_headers.clone()
+}
 
-    CorsLayer::new()
-        .allow_origin(AllowOrigin::list(origins))
-        .allow_methods(ALLOWED_METHODS.to_vec())
-        .allow_headers(headers)
-        .allow_credentials(true)
+///gets whether credentials are allowed from central config
+pub fn get_allow_credentials() -> bool {
+    env::get().cors.allow_credentials
 }

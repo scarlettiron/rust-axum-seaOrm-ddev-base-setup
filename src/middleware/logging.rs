@@ -4,36 +4,23 @@ use axum::{
     middleware::Next,
     response::Response,
 };
-use std::env;
 use std::time::Instant;
 
-///headers that should never be logged for security reasons
-const SENSITIVE_HEADERS: &[&str] = &[
-    "authorization",
-    "cookie",
-    "set-cookie",
-    "x-api-key",
-    "x-auth-token",
-    "x-access-token",
-    "x-refresh-token",
-    "proxy-authorization",
-];
+use crate::config::env;
 
-///checks if request logging is enabled via REQUEST_LOGGING env var
-///defaults to true if not set
-pub fn is_logging_enabled() -> bool {
-    env::var("REQUEST_LOGGING")
-        .map(|v| v.to_lowercase() != "false" && v != "0")
-        .unwrap_or(true)
+///checks if request logging is enabled via central config
+fn is_logging_enabled() -> bool {
+    env::get().middleware.request_logging_enabled
 }
 
 ///filters sensitive headers from being logged
 fn filter_headers(headers: &HeaderMap) -> Vec<(String, String)> {
+    let sensitive = &env::get().logging.sensitive_headers;
     headers
         .iter()
         .filter(|(name, _)| {
             let name_lower = name.as_str().to_lowercase();
-            !SENSITIVE_HEADERS.contains(&name_lower.as_str())
+            !sensitive.iter().any(|s| s == &name_lower)
         })
         .map(|(name, value)| {
             (

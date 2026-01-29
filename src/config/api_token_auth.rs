@@ -1,9 +1,6 @@
-///hardcoded value for enabling API token authentication middleware
-///set to true to enable, false to disable
-const ENABLED: bool = true;
+use super::env;
 
 ///checks if API token authentication middleware is enabled
-///returns the hardcoded ENABLED value
 pub fn is_enabled() -> bool {
-    ENABLED
+    env::get().middleware.api_token_auth_enabled
 }

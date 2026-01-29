@@ -1,19 +1,8 @@
-use std::env;
+use super::env;
 
-///default allowed host if ALLOWED_HOSTS env var is not set
-const DEFAULT_HOST: &str = "erp-proxy-server.ddev.site";
-
-///gets allowed hosts from ALLOWED_HOSTS env var (comma-separated)
-///falls back to default DDEV project host if not set
+///gets allowed hosts from central config
 pub fn get_allowed_hosts() -> Vec<String> {
-    match env::var("ALLOWED_HOSTS") {
-        Ok(hosts) => hosts
-            .split(',')
-            .map(|s| s.trim().to_string())
-            .filter(|s| !s.is_empty())
-            .collect(),
-        Err(_) => vec![DEFAULT_HOST.to_string()],
-    }
+    env::get().hosts.allowed.clone()
 }
 
 ///checks if a host is allowed
