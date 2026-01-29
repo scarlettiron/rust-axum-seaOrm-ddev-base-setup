@@ -16,12 +16,9 @@ use crate::tenant::routes::{
         crate::admin::services::health_check,
         crate::tenant::routes::list_tenants,
         crate::tenant::routes::get_tenant,
-        crate::tenant::routes::get_tenant_by_uuid,
         crate::tenant::routes::create_tenant,
         crate::tenant::routes::update_tenant,
-        crate::tenant::routes::update_tenant_by_uuid,
         crate::tenant::routes::delete_tenant,
-        crate::tenant::routes::delete_tenant_by_uuid,
     ),
     components(schemas(
         HealthCheckResponse,

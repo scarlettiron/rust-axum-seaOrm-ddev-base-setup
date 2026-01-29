@@ -18,7 +18,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 anyhow = "1.0"
 sea-orm = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros"] }
 dotenvy = "0.15"
-redis = { version = "0.25", features = ["tokio-comp", "connection-manager"] }
+redis = { version = "1.0.2", features = ["tokio-comp", "connection-manager"] }
 chrono = "0.4"
 uuid = { version = "1.10", features = ["v4", "serde"] }
 
@@ -27,5 +27,15 @@ entity = { path = "entity" }
 migration = { path = "migration" } # for running migrations at startup
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
-cargo-watch = "8.5.3"
+prometheus = "0.14.0"
+
+
+[dev-dependencies]
+axum-test = "16"
+sea-orm = { version = "1.1", features = ["sqlx-postgres", "runtime-tokio-rustls", "macros", "mock"] }
+
+[lints.rust]
+dead_code = "allow"
+unused_variables = "allow"
+unused_imports = "allow"
 

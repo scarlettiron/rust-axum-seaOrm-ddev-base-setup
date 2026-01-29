@@ -30,6 +30,9 @@ async fn main() {
         .compact()
         .init();
 
+    //initialize prometheus metrics
+    config::init_metrics();
+
     //connect to database
     let db = config::db_connect()
         .await
@@ -69,10 +72,11 @@ async fn main() {
 
     //apply other middleware
     app = app
-        .layer(axum::middleware::from_fn(config::allowed_hosts_middleware))
+        .layer(axum::middleware::from_fn(middleware::allowed_hosts_middleware))
         .layer(config::cors_layer())
         .layer(TraceLayer::new_for_http())
-        .layer(axum::middleware::from_fn(middleware::request_logging_middleware));
+        .layer(axum::middleware::from_fn(middleware::request_logging_middleware))
+        .layer(axum::middleware::from_fn(middleware::metrics_middleware));
 
     //get port from environment or use default
     let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());

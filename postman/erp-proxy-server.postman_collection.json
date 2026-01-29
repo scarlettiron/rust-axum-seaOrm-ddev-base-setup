@@ -1,0 +1,651 @@
+{
+	"info": {
+		"_postman_id": "erp-proxy-server-collection",
+		"name": "ERP Proxy Server API",
+		"description": "API collection for the ERP Proxy Server - Tenant Management and Health Checks",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://erp-proxy-server.ddev.site",
+			"type": "string"
+		},
+		{
+			"key": "api_token",
+			"value": "your-api-token-here",
+			"type": "string"
+		},
+		{
+			"key": "tenant_id",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/healthcheck",
+							"host": ["{{base_url}}"],
+							"path": ["healthcheck"]
+						},
+						"description": "Check if the application is running"
+					},
+					"response": []
+				},
+				{
+					"name": "Root Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						},
+						"description": "Root endpoint health check"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Tenant",
+			"item": [
+				{
+					"name": "List Tenants",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has pagination fields', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('items');",
+									"    pm.expect(jsonData).to.have.property('total');",
+									"    pm.expect(jsonData).to.have.property('page');",
+									"    pm.expect(jsonData).to.have.property('per_page');",
+									"    pm.expect(jsonData).to.have.property('total_pages');",
+									"});",
+									"",
+									"pm.test('Items is an array', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.items).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant?page=1&per_page=20",
+							"host": ["{{base_url}}"],
+							"path": ["tenant"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "per_page",
+									"value": "20",
+									"description": "Items per page (default: 20)"
+								},
+								{
+									"key": "status",
+									"value": "active",
+									"description": "Filter by status (active/removed)",
+									"disabled": true
+								},
+								{
+									"key": "display_name",
+									"value": "",
+									"description": "Filter by display name (partial match)",
+									"disabled": true
+								},
+								{
+									"key": "tenant_id",
+									"value": "",
+									"description": "Filter by tenant ID (partial match)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of tenants with optional filters"
+					},
+					"response": []
+				},
+				{
+					"name": "List Tenants - Active Only",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All items have active status', function () {",
+									"    var jsonData = pm.response.json();",
+									"    jsonData.items.forEach(function(item) {",
+									"        pm.expect(item.status).to.equal('active');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant?status=active",
+							"host": ["{{base_url}}"],
+							"path": ["tenant"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active"
+								}
+							]
+						},
+						"description": "Get list of active tenants only"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tenant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has tenant fields', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('uuid');",
+									"    pm.expect(jsonData).to.have.property('tenant_id');",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData).to.have.property('created_at');",
+									"    pm.expect(jsonData).to.have.property('updated_at');",
+									"});",
+									"",
+									"pm.test('Tenant ID starts with TN_', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.tenant_id).to.match(/^TN_[a-f0-9]{32}$/);",
+									"});",
+									"",
+									"pm.test('Status is active', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.equal('active');",
+									"});",
+									"",
+									"// Store tenant_id for subsequent requests",
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('tenant_id', jsonData.tenant_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"display_name\": \"Test Tenant\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tenant",
+							"host": ["{{base_url}}"],
+							"path": ["tenant"]
+						},
+						"description": "Create a new tenant. The tenant_id is auto-generated in TN_<uuid> format."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Tenant - Without Display Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Display name is null', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.display_name).to.be.null;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tenant",
+							"host": ["{{base_url}}"],
+							"path": ["tenant"]
+						},
+						"description": "Create a tenant without a display name"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tenant by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has tenant fields', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('uuid');",
+									"    pm.expect(jsonData).to.have.property('tenant_id');",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "{{tenant_id}}"]
+						},
+						"description": "Get a specific tenant by tenant_id (TN_xxx format)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tenant - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error message is present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"    pm.expect(jsonData.error).to.equal('Tenant not found');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant/TN_nonexistent00000000000000000000",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "TN_nonexistent00000000000000000000"]
+						},
+						"description": "Test 404 response for non-existent tenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tenant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Display name was updated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.display_name).to.equal('Updated Tenant Name');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"display_name\": \"Updated Tenant Name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tenant/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "{{tenant_id}}"]
+						},
+						"description": "Update tenant display name"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tenant - Change Status to Removed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Status was updated', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.equal('removed');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"removed\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tenant/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "{{tenant_id}}"]
+						},
+						"description": "Update tenant status to removed"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Tenant - Reactivate",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Status was updated to active', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.status).to.equal('active');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/tenant/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "{{tenant_id}}"]
+						},
+						"description": "Reactivate a removed tenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tenant (Soft Delete)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Success message is present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"    pm.expect(jsonData.message).to.equal('Tenant removed successfully');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant/{{tenant_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "{{tenant_id}}"]
+						},
+						"description": "Soft delete a tenant (sets status to 'removed')"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Tenant - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error message is present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/tenant/TN_nonexistent00000000000000000000",
+							"host": ["{{base_url}}"],
+							"path": ["tenant", "TN_nonexistent00000000000000000000"]
+						},
+						"description": "Test 404 response when deleting non-existent tenant"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Auth Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/auth/health",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "health"]
+						},
+						"description": "Auth module health check"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Admin Health Check",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/admin/health",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "health"]
+						},
+						"description": "Admin module health check"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

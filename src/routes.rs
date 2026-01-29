@@ -34,6 +34,7 @@ pub fn create_router(state: AppState) -> Router {
     Router::new()
         .merge(swagger_ui)
         .route("/healthcheck", get(healthcheck))
+        .route("/metrics", get(crate::middleware::metrics_handler))
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())
         .nest("/tenant", crate::tenant::create_router())

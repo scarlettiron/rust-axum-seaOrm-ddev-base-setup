@@ -1,9 +1,3 @@
-use axum::{
-    body::Body,
-    http::{Request, StatusCode},
-    middleware::Next,
-    response::Response,
-};
 use std::env;
 
 ///default allowed host if ALLOWED_HOSTS env var is not set
@@ -23,7 +17,7 @@ pub fn get_allowed_hosts() -> Vec<String> {
 }
 
 ///checks if a host is allowed
-fn is_host_allowed(host: &str) -> bool {
+pub fn is_host_allowed(host: &str) -> bool {
     let allowed = get_allowed_hosts();
 
     //strip port if present
@@ -37,25 +31,4 @@ fn is_host_allowed(host: &str) -> bool {
         //match subdomains
         || host_without_port.ends_with(&format!(".{}", allowed_host))
     })
-}
-
-///middleware that validates the Host header against allowed hosts
-///returns 400 Bad Request if the host is not allowed
-pub async fn allowed_hosts_middleware(
-    request: Request<Body>,
-    next: Next,
-) -> Result<Response, StatusCode> {
-    //get the Host header
-    let host = request
-        .headers()
-        .get("host")
-        .and_then(|h| h.to_str().ok())
-        .unwrap_or("");
-
-    if host.is_empty() || !is_host_allowed(host) {
-        tracing::warn!("Blocked request from disallowed host: {}", host);
-        return Err(StatusCode::BAD_REQUEST);
-    }
-
-    Ok(next.run(request).await)
 }

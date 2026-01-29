@@ -90,10 +90,11 @@ fn is_api_token_public_route(path: &str) -> bool {
     let public_routes = [
         "/",
         "/healthcheck",
+        "/metrics",
         "/local/swagger-ui",
         "/api-doc/openapi.json"
     ];
-    
+
     public_routes.iter().any(|route| {
         path == *route || path.starts_with(&format!("{}/", route))
     })

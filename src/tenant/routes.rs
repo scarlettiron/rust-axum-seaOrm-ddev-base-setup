@@ -310,5 +310,4 @@ pub fn create_router() -> Router<AppState> {
     Router::new()
         .route("/", get(list_tenants).post(create_tenant))
         .route("/{tenant_id}", get(get_tenant).put(update_tenant).delete(delete_tenant))
-        .route("/uuid/{uuid}", get(get_tenant_by_uuid).put(update_tenant_by_uuid).delete(delete_tenant_by_uuid))
 }
