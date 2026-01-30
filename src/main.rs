@@ -2,6 +2,7 @@ mod auth;
 mod admin;
 mod config;
 mod connection_identity;
+mod erp_connection_credentials;
 mod erp_connection_sync_state;
 mod middleware;
 mod openapi;
