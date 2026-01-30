@@ -5,5 +5,6 @@ pub mod prelude;
 pub mod allowed_ip_address;
 pub mod api_token;
 pub mod connection_identity;
+pub mod erp_connection_sync_state;
 pub mod sea_orm_active_enums;
 pub mod tenant;

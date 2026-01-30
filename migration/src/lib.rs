@@ -7,6 +7,7 @@ mod m20220126_000004_add_allowed_ip_addresses;
 mod m20220126_000005_rename_api_token_enum;
 mod m20260128_0000006_create_tenant_table;
 mod m20260129_000007_create_connection_identity_table;
+mod m20260130_000008_create_erp_connection_sync_state_table;
 
 pub struct Migrator;
 
@@ -21,6 +22,7 @@ impl MigratorTrait for Migrator {
            Box::new(m20220126_000005_rename_api_token_enum::Migration),
            Box::new(m20260128_0000006_create_tenant_table::Migration),
            Box::new(m20260129_000007_create_connection_identity_table::Migration),
+           Box::new(m20260130_000008_create_erp_connection_sync_state_table::Migration),
         ]
     }
 }
