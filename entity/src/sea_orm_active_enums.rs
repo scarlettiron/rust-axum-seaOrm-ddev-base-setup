@@ -58,6 +58,32 @@ pub enum ErpConnectionAuthStatus {
 #[sea_orm(
     rs_type = "String",
     db_type = "Enum",
+    enum_name = "erp_connection_auth_token_type"
+)]
+pub enum ErpConnectionAuthTokenType {
+    #[sea_orm(string_value = "bearer")]
+    Bearer,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "erp_connection_reauth_reason"
+)]
+pub enum ErpConnectionReauthReason {
+    #[sea_orm(string_value = "refresh_expired")]
+    RefreshExpired,
+    #[sea_orm(string_value = "revoked")]
+    Revoked,
+    #[sea_orm(string_value = "invalid_grant")]
+    InvalidGrant,
+    #[sea_orm(string_value = "scopes_changed")]
+    ScopesChanged,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
     enum_name = "erp_connection_status"
 )]
 pub enum ErpConnectionStatus {
