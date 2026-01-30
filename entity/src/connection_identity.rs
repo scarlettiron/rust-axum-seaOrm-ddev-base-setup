@@ -59,6 +59,8 @@ pub struct Model {
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(has_many = "super::connection_run::Entity")]
+    ConnectionRun,
     #[sea_orm(has_one = "super::erp_connection_credentials::Entity")]
     ErpConnectionCredentials,
     #[sea_orm(has_one = "super::erp_connection_sync_state::Entity")]
@@ -71,6 +73,12 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Tenant,
+}
+
+impl Related<super::connection_run::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ConnectionRun.def()
+    }
 }
 
 impl Related<super::erp_connection_credentials::Entity> for Entity {

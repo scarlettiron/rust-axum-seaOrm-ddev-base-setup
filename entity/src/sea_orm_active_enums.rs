@@ -31,6 +31,28 @@ pub enum ApiTokenStatusEnum {
     Banned,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "connection_run_status"
+)]
+pub enum ConnectionRunStatus {
+    #[sea_orm(string_value = "success")]
+    Success,
+    #[sea_orm(string_value = "error")]
+    Error,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "connection_run_type"
+)]
+pub enum ConnectionRunType {
+    #[sea_orm(string_value = "poll")]
+    Poll,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "enum")]
 pub enum Enum {
     #[sea_orm(string_value = "active")]
