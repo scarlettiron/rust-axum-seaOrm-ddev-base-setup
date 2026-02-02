@@ -1,0 +1,13 @@
+services:
+  openresty:
+    image: openresty/openresty:alpine
+    container_name: ddev-${DDEV_SITENAME}-openresty
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+    depends_on:
+      - redis
+    volumes:
+      - ./openresty/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./openresty:/etc/openresty
+    ports:
+      - "8085:80"

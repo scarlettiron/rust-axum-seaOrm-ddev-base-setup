@@ -22,6 +22,7 @@ pub struct AppConfig {
 pub struct ServerConfig {
     pub port: String,
     pub rust_log: String,
+    pub base_url: Option<String>,
 }
 
 #[derive(Debug)]
@@ -59,6 +60,7 @@ pub struct MiddlewareConfig {
     pub api_token_auth_enabled: bool,
     pub ip_address_auth_enabled: bool,
     pub request_logging_enabled: bool,
+    pub trusted_proxies: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -73,6 +75,7 @@ impl AppConfig {
             server: ServerConfig {
                 port: env::var("PORT").unwrap_or_else(|_| "3000".to_string()),
                 rust_log: env::var("RUST_LOG").unwrap_or_else(|_| "debug".to_string()),
+                base_url: Some("/api".to_string())
             },
 
             db: DatabaseConfig {
@@ -173,6 +176,15 @@ impl AppConfig {
                 request_logging_enabled: env::var("REQUEST_LOGGING")
                     .map(|v| v.to_lowercase() != "false" && v != "0")
                     .unwrap_or(true),
+                trusted_proxies: env::var("TRUSTED_PROXIES")
+                    .map(|proxies| {
+                        proxies
+                            .split(',')
+                            .map(|s| s.trim().to_string())
+                            .filter(|s| !s.is_empty())
+                            .collect()
+                    })
+                    .unwrap_or_default(),
             },
 
             logging: LoggingConfig {

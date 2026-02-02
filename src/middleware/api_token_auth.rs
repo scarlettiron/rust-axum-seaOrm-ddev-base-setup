@@ -7,6 +7,7 @@ use axum::{
 };
 use axum::body::to_bytes;
 use crate::AppState;
+use crate::config;
 use crate::security::ApiTokenService;
 
 //extracts API token from request headers
@@ -32,13 +33,28 @@ fn extract_api_token(headers: &HeaderMap) -> Option<String> {
 }
 
 //extracts client IP address from request headers
+//walks X-Forwarded-For from right to left, skipping trusted proxy IPs
 fn get_client_ip(request: &Request<Body>) -> String {
+    let trusted = &config::env::get().middleware.trusted_proxies;
+
     //check x-forwarded-for header first (for proxied requests)
     if let Some(forwarded) = request.headers().get("x-forwarded-for") {
         if let Ok(value) = forwarded.to_str() {
-            //take the first IP in the chain
-            if let Some(ip) = value.split(',').next() {
-                return ip.trim().to_string();
+            let ips: Vec<&str> = value.split(',').map(|s| s.trim()).collect();
+
+            if trusted.is_empty() {
+                //no trusted proxies configured — take the first (leftmost) IP
+                if let Some(ip) = ips.first() {
+                    return ip.to_string();
+                }
+            } else {
+                //walk from right to left, skip trusted proxies, return the first untrusted IP
+                for ip in ips.iter().rev() {
+                    if !trusted.iter().any(|t| t == ip) {
+                        return ip.to_string();
+                    }
+                }
+                //all IPs were trusted — fall through to X-Real-IP
             }
         }
     }
@@ -85,8 +101,20 @@ async fn extract_body(body: Body) -> (String, Body) {
     (body_str, new_body)
 }
 
+//strips the base_url prefix from the path for route matching
+//e.g. with BASE_URL=/api, "/api/healthcheck" becomes "/healthcheck"
+fn strip_base_url<'a>(path: &'a str) -> &'a str {
+    if let Some(base) = &config::env::get().server.base_url {
+        path.strip_prefix(base.as_str()).unwrap_or(path)
+    } else {
+        path
+    }
+}
+
 //list of public routes that don't require API token authentication
 fn is_api_token_public_route(path: &str) -> bool {
+    let effective_path = strip_base_url(path);
+
     let public_routes = [
         "/",
         "/healthcheck",
@@ -96,7 +124,7 @@ fn is_api_token_public_route(path: &str) -> bool {
     ];
 
     public_routes.iter().any(|route| {
-        path == *route || path.starts_with(&format!("{}/", route))
+        effective_path == *route || effective_path.starts_with(&format!("{}/", route))
     })
 }
 
@@ -109,7 +137,7 @@ pub async fn api_token_auth_middleware(
     next: Next,
 ) -> Response {
     let path = request.uri().path();
-    
+
     //skip authentication for public routes
     if is_api_token_public_route(path) {
         return next.run(request).await;

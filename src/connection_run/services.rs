@@ -2,7 +2,7 @@ use entity::connection_run;
 use entity::sea_orm_active_enums::{ConnectionRunStatus, ConnectionRunType};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseConnection, DatabaseTransaction, DbErr, EntityTrait,
-    QueryFilter, QueryOrder, Set,
+    QueryFilter, QueryOrder, Set,QuerySelect
 };
 use uuid::Uuid;
 
