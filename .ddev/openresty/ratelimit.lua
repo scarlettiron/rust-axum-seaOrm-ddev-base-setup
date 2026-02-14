@@ -5,6 +5,7 @@ access_by_lua_block {
 
   local ok, err = red:connect("redis", 6379)
   if not ok then
+    ngx.log(ngx.ERR, "ratelimit: redis connect failed: ", err)
     return  -- dev: fail-open
   end
 
@@ -37,8 +38,11 @@ access_by_lua_block {
 
   local res, eval_err = red:eval(script, 1, key, window, limit)
   if not res then
+    ngx.log(ngx.ERR, "ratelimit: redis eval failed: ", eval_err)
     return
   end
+
+  ngx.log(ngx.INFO, "ratelimit: key=", key, " current=", res[2], " limit=", limit)
 
   local allowed = tonumber(res[1]) or 1
   local current = tonumber(res[2]) or 0
