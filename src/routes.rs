@@ -38,6 +38,10 @@ pub fn create_router(state: AppState) -> Router {
         .nest("/auth", crate::auth::create_router())
         .nest("/admin", crate::admin::create_router())
         .nest("/tenant", crate::tenant::create_router())
+        .nest(
+            "/client-systems/quickbooks/desktop",
+            crate::client_systems::quickbooks::desktop::create_router(),
+        )
         .route("/", get(healthcheck))
         .with_state(state);
 

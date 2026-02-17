@@ -1,5 +1,5 @@
-mod auth;
 mod admin;
+mod auth;
 mod config;
 mod connection_identity;
 mod connection_run;
@@ -10,6 +10,9 @@ mod openapi;
 mod routes;
 mod security;
 mod tenant;
+
+#[path = "client-systems/mod.rs"]
+mod client_systems;
 
 use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;

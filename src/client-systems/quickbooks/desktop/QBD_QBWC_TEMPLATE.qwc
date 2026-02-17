@@ -1,0 +1,28 @@
+<?xml version="1.0.0" encoding="UTF-8"?>
+<QBWCXML>
+  <AppName>Pro Portals ERP Connector</AppName>
+
+  <AppID>Pro_Portals_ERP_Connector:1.0.0</AppID>
+
+  <AppURL>https://erp.backend.lumbermarketplace.com/qbwc</AppURL>
+
+  <AppDescription>
+    Sync customers, invoices, payments, and inventory between QuickBooks Desktop and Lumber Marketplace / Pro Portals ERP system
+  </AppDescription>
+
+  <AppSupport>https://proportals.com/support</AppSupport>
+
+  <UserName>{{username}}</UserName>
+
+  <OwnerID>{90A44FB2-33D9-4815-AC85-BC87A7E7D1EB}</OwnerID>
+
+  <FileID>{{fileid}}</FileID>
+
+  <QBType>QBFS</QBType>
+
+  <Scheduler>
+    <RunEveryNMinutes>5</RunEveryNMinutes>
+  </Scheduler>
+
+  <IsReadOnly>false</IsReadOnly>
+</QBWCXML>

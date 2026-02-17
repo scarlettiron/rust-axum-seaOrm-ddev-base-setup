@@ -646,6 +646,243 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "QuickBooks Desktop",
+			"item": [
+				{
+					"name": "Generate QWC - No Tenant (Create Tenant)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has tenant_id, password, qwc_file_base64', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tenant_id');",
+									"    pm.expect(jsonData).to.have.property('password');",
+									"    pm.expect(jsonData).to.have.property('qwc_file_base64');",
+									"});",
+									"",
+									"pm.test('tenant_id starts with TN_', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.tenant_id).to.match(/^TN_[a-f0-9]{32}$/);",
+									"});",
+									"",
+									"pm.test('qwc_file_base64 is non-empty', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.qwc_file_base64).to.be.a('string');",
+									"    pm.expect(jsonData.qwc_file_base64.length).to.be.above(0);",
+									"});",
+									"",
+									"pm.test('username starts with pro_portals_', function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.username) {",
+									"        pm.expect(jsonData.username).to.match(/^pro_portals_/);",
+									"    }",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.collectionVariables.set('tenant_id', jsonData.tenant_id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/client-systems/quickbooks/desktop/qwc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "client-systems", "quickbooks", "desktop", "qwc"]
+						},
+						"description": "Generate .qwc file without tenant_id; creates a new tenant and returns qwc_file_base64, password, and tenant_id."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate QWC - With Tenant ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has tenant_id, password, qwc_file_base64', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tenant_id');",
+									"    pm.expect(jsonData).to.have.property('password');",
+									"    pm.expect(jsonData).to.have.property('qwc_file_base64');",
+									"});",
+									"",
+									"pm.test('Returned tenant_id matches request', function () {",
+									"    var jsonData = pm.response.json();",
+									"    var body = JSON.parse(pm.request.body.raw);",
+									"    if (body.tenant_id) {",
+									"        pm.expect(jsonData.tenant_id).to.equal(body.tenant_id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tenant_id\": \"{{tenant_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/client-systems/quickbooks/desktop/qwc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "client-systems", "quickbooks", "desktop", "qwc"]
+						},
+						"description": "Generate .qwc file for an existing tenant_id (uses collection variable from previous request)."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate QWC - Same Tenant (Existing Credentials)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has same structure', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('tenant_id');",
+									"    pm.expect(jsonData).to.have.property('password');",
+									"    pm.expect(jsonData).to.have.property('qwc_file_base64');",
+									"});",
+									"",
+									"pm.test('Password is returned', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.password).to.be.a('string');",
+									"    pm.expect(jsonData.password.length).to.be.above(0);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tenant_id\": \"{{tenant_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/client-systems/quickbooks/desktop/qwc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "client-systems", "quickbooks", "desktop", "qwc"]
+						},
+						"description": "Call again with same tenant_id; returns existing credentials and .qwc (no new tenant/credentials created)."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate QWC - Tenant Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error message is present', function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('error');",
+									"    pm.expect(jsonData.error).to.include('Tenant not found');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tenant_id\": \"TN_nonexistent00000000000000000000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/client-systems/quickbooks/desktop/qwc",
+							"host": ["{{base_url}}"],
+							"path": ["api", "client-systems", "quickbooks", "desktop", "qwc"]
+						},
+						"description": "Request .qwc for non-existent tenant_id; expects 404 and error message."
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
