@@ -6,4 +6,6 @@ pub use super::connection_identity::Entity as ConnectionIdentity;
 pub use super::connection_run::Entity as ConnectionRun;
 pub use super::erp_connection_credentials::Entity as ErpConnectionCredentials;
 pub use super::erp_connection_sync_state::Entity as ErpConnectionSyncState;
+pub use super::inventory_record::Entity as InventoryRecord;
+pub use super::inventory_record_event::Entity as InventoryRecordEvent;
 pub use super::tenant::Entity as Tenant;

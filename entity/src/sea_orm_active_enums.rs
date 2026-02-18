@@ -31,6 +31,26 @@ pub enum ApiTokenStatusEnum {
     Banned,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "currency")]
+pub enum Currency {
+    #[sea_orm(string_value = "usd")]
+    Usd,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "system_id_key"
+)]
+pub enum SystemIdKey {
+    #[sea_orm(string_value = "qbd")]
+    Qbd,
+    #[sea_orm(string_value = "qbo")]
+    Qbo,
+    #[sea_orm(string_value = "sapo")]
+    Sapo,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(
     rs_type = "String",
     db_type = "Enum",

@@ -1,0 +1,64 @@
+//! `SeaORM` Entity for inventory_record_event
+
+use super::sea_orm_active_enums::Currency;
+use sea_orm::entity::prelude::*;
+
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[sea_orm(table_name = "inventory_record_event")]
+pub struct Model {
+    #[sea_orm(primary_key)]
+    pub id: i64,
+    #[sea_orm(unique)]
+    pub uuid: Uuid,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+    pub inventory_record_id: i64,
+    pub connection_id: i64,
+    #[sea_orm(column_type = "JsonBinary", nullable)]
+    pub original_record_body: Option<Json>,
+    pub price: Option<i32>,
+    pub currency: Option<Currency>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub name: Option<String>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub description: Option<String>,
+    #[sea_orm(column_type = "Array(Text)", nullable)]
+    pub attributes: Option<Vec<String>>,
+    pub qty: Option<i32>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub external_code: Option<String>,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::inventory_record::Entity",
+        from = "Column::InventoryRecordId",
+        to = "super::inventory_record::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    InventoryRecord,
+    #[sea_orm(
+        belongs_to = "super::connection_identity::Entity",
+        from = "Column::ConnectionId",
+        to = "super::connection_identity::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    ConnectionIdentity,
+}
+
+impl Related<super::inventory_record::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InventoryRecord.def()
+    }
+}
+
+impl Related<super::connection_identity::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ConnectionIdentity.def()
+    }
+}
+
+impl ActiveModelBehavior for ActiveModel {}

@@ -65,6 +65,10 @@ pub enum Relation {
     ErpConnectionCredentials,
     #[sea_orm(has_one = "super::erp_connection_sync_state::Entity")]
     ErpConnectionSyncState,
+    #[sea_orm(has_many = "super::inventory_record::Entity")]
+    InventoryRecord,
+    #[sea_orm(has_many = "super::inventory_record_event::Entity")]
+    InventoryRecordEvent,
     #[sea_orm(
         belongs_to = "super::tenant::Entity",
         from = "Column::TenantId",
@@ -90,6 +94,18 @@ impl Related<super::erp_connection_credentials::Entity> for Entity {
 impl Related<super::erp_connection_sync_state::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::ErpConnectionSyncState.def()
+    }
+}
+
+impl Related<super::inventory_record::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InventoryRecord.def()
+    }
+}
+
+impl Related<super::inventory_record_event::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InventoryRecordEvent.def()
     }
 }
 

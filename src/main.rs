@@ -5,6 +5,7 @@ mod connection_identity;
 mod connection_run;
 mod erp_connection_credentials;
 mod erp_connection_sync_state;
+mod inventory_records;
 mod middleware;
 mod openapi;
 mod routes;

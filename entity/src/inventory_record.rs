@@ -1,0 +1,64 @@
+//! `SeaORM` Entity for inventory_record
+
+use super::sea_orm_active_enums::SystemIdKey;
+use sea_orm::entity::prelude::*;
+
+#[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]
+#[sea_orm(table_name = "inventory_record")]
+pub struct Model {
+    #[sea_orm(primary_key)]
+    pub id: i64,
+    #[sea_orm(unique)]
+    pub uuid: Uuid,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+    pub tenant_id: i64,
+    pub originating_connection_id: i64,
+    #[sea_orm(column_type = "JsonBinary", nullable)]
+    pub original_record_body: Option<Json>,
+    pub system_id_key: SystemIdKey,
+    #[sea_orm(column_type = "String(StringLen::N(255))")]
+    pub system_id: String,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::tenant::Entity",
+        from = "Column::TenantId",
+        to = "super::tenant::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    Tenant,
+    #[sea_orm(
+        belongs_to = "super::connection_identity::Entity",
+        from = "Column::OriginatingConnectionId",
+        to = "super::connection_identity::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
+    ConnectionIdentity,
+    #[sea_orm(has_many = "super::inventory_record_event::Entity")]
+    InventoryRecordEvent,
+}
+
+impl Related<super::tenant::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::Tenant.def()
+    }
+}
+
+impl Related<super::connection_identity::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ConnectionIdentity.def()
+    }
+}
+
+impl Related<super::inventory_record_event::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::InventoryRecordEvent.def()
+    }
+}
+
+impl ActiveModelBehavior for ActiveModel {}
