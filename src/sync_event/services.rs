@@ -355,7 +355,7 @@ impl SyncEventService {
         match txn {
             Some(txn) => active.delete(txn).await?,
             None => active.delete(&self.db).await?,
-        }
+        };
         Ok(Some(deleted))
     }
 
@@ -381,4 +381,4 @@ impl SyncEventService {
     }
 }
 
-/// END IMPLEMENTATION ///
+// END IMPLEMENTATION

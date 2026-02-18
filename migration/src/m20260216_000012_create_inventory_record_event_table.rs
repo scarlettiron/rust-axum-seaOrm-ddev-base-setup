@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-// ── Table (references existing currency enum from m20260216_000011) ──
+// ── Table ──
 
 #[derive(DeriveIden)]
 enum InventoryRecordEvent {
@@ -138,7 +138,10 @@ impl MigrationTrait for Migration {
                     )
                     .foreign_key(
                         ForeignKey::create()
-                            .from(InventoryRecordEvent::Table, InventoryRecordEvent::ConnectionId)
+                            .from(
+                                InventoryRecordEvent::Table,
+                                InventoryRecordEvent::ConnectionId,
+                            )
                             .to(ConnectionIdentity::Table, ConnectionIdentity::Id)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
@@ -174,7 +177,10 @@ impl MigrationTrait for Migration {
         manager
             .create_index(
                 Index::create()
-                    .name(InventoryRecordEventIndexes::InventoryRecordEventConnectionIdIdx.to_string())
+                    .name(
+                        InventoryRecordEventIndexes::InventoryRecordEventConnectionIdIdx
+                            .to_string(),
+                    )
                     .table(InventoryRecordEvent::Table)
                     .col(InventoryRecordEvent::ConnectionId)
                     .to_owned(),

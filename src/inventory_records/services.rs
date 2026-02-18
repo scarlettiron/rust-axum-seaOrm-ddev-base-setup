@@ -267,7 +267,7 @@ impl InventoryRecordService {
         match txn {
             Some(txn) => active.delete(txn).await?,
             None => active.delete(&self.db).await?,
-        }
+        };
         Ok(Some(deleted))
     }
 
@@ -293,4 +293,4 @@ impl InventoryRecordService {
     }
 }
 
-/// END IMPLEMENTATION ///
+// END IMPLEMENTATION

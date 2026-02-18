@@ -22,8 +22,8 @@ pub struct Model {
     pub name: Option<String>,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
-    #[sea_orm(column_type = "Array(Text)", nullable)]
-    pub attributes: Option<Vec<String>>,
+    #[sea_orm(column_type = "Text", nullable)]
+    pub attributes: Option<String>,
     pub qty: Option<i32>,
     #[sea_orm(column_type = "Text", nullable)]
     pub external_code: Option<String>,

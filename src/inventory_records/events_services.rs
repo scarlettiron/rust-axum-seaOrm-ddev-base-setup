@@ -40,7 +40,7 @@ pub struct CreateInventoryRecordEvent {
     pub currency: Option<Currency>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub attributes: Option<Vec<String>>,
+    pub attributes: Option<String>,
     pub qty: Option<i32>,
     pub external_code: Option<String>,
 }
@@ -52,7 +52,7 @@ pub struct UpdateInventoryRecordEvent {
     pub currency: Option<Currency>,
     pub name: Option<String>,
     pub description: Option<String>,
-    pub attributes: Option<Vec<String>>,
+    pub attributes: Option<String>,
     pub qty: Option<i32>,
     pub external_code: Option<String>,
 }
@@ -230,10 +230,10 @@ impl InventoryRecordEventService {
             active.original_record_body = Set(patch.original_record_body);
         }
         if let Some(price) = patch.price {
-            active.price = Set(price);
+            active.price = Set(Some(price));
         }
         if let Some(currency) = patch.currency {
-            active.currency = Set(currency);
+            active.currency = Set(Some(currency));
         }
         if patch.name.is_some() {
             active.name = Set(patch.name);
@@ -296,7 +296,7 @@ impl InventoryRecordEventService {
         match txn {
             Some(txn) => active.delete(txn).await?,
             None => active.delete(&self.db).await?,
-        }
+        };
         Ok(Some(deleted))
     }
 
@@ -322,4 +322,4 @@ impl InventoryRecordEventService {
     }
 }
 
-/// END IMPLEMENTATION ///
+// END IMPLEMENTATION

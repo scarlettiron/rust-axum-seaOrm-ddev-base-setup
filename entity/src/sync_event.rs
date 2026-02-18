@@ -4,9 +4,6 @@ use super::sea_orm_active_enums::SyncEventCategory;
 use super::sea_orm_active_enums::SyncEventDirection;
 use super::sea_orm_active_enums::SyncEventMethod;
 use super::sea_orm_active_enums::SyncEventStatus;
-use super::sea_orm_active_enums::{
-    SyncEventCategory, SyncEventDirection, SyncEventMethod, SyncEventStatus,
-};
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel)]

@@ -16,6 +16,7 @@ mod tenant;
 #[path = "client-systems/mod.rs"]
 mod client_systems;
 
+use migration::MigratorTrait;
 use redis::aio::ConnectionManager;
 use sea_orm::DatabaseConnection;
 use tower_http::trace::TraceLayer;

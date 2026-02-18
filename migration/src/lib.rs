@@ -14,6 +14,7 @@ mod m20260216_000011_create_inventory_record_tables;
 mod m20260216_000012_create_inventory_record_event_table;
 mod m20260216_000013_create_sync_event_tables;
 mod m20260216_000014_add_sync_event_connection_run_id;
+mod m20260216_000015_alter_inventory_record_event_attributes_to_text;
 
 pub struct Migrator;
 
@@ -35,6 +36,7 @@ impl MigratorTrait for Migrator {
            Box::new(m20260216_000012_create_inventory_record_event_table::Migration),
            Box::new(m20260216_000013_create_sync_event_tables::Migration),
            Box::new(m20260216_000014_add_sync_event_connection_run_id::Migration),
+           Box::new(m20260216_000015_alter_inventory_record_event_attributes_to_text::Migration),
         ]
     }
 }
