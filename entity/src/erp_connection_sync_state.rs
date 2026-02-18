@@ -35,11 +35,19 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     ConnectionIdentity,
+    #[sea_orm(has_many = "super::sync_event::Entity")]
+    SyncEvent,
 }
 
 impl Related<super::connection_identity::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::ConnectionIdentity.def()
+    }
+}
+
+impl Related<super::sync_event::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SyncEvent.def()
     }
 }
 

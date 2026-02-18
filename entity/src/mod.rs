@@ -11,4 +11,5 @@ pub mod erp_connection_sync_state;
 pub mod inventory_record;
 pub mod inventory_record_event;
 pub mod sea_orm_active_enums;
+pub mod sync_event;
 pub mod tenant;

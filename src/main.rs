@@ -8,6 +8,7 @@ mod erp_connection_sync_state;
 mod inventory_records;
 mod middleware;
 mod openapi;
+mod sync_event;
 mod routes;
 mod security;
 mod tenant;

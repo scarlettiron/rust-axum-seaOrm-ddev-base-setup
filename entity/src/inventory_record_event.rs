@@ -47,6 +47,8 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     InventoryRecord,
+    #[sea_orm(has_many = "super::sync_event::Entity")]
+    SyncEvent,
 }
 
 impl Related<super::connection_identity::Entity> for Entity {
@@ -58,6 +60,12 @@ impl Related<super::connection_identity::Entity> for Entity {
 impl Related<super::inventory_record::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::InventoryRecord.def()
+    }
+}
+
+impl Related<super::sync_event::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::SyncEvent.def()
     }
 }
 
