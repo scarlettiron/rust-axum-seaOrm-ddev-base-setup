@@ -52,6 +52,7 @@ pub struct CreateSyncEvent {
     pub last_error: Option<serde_json::Value>,
     pub last_errored_date: Option<chrono::DateTime<chrono::Utc>>,
     pub connection_sync_state_id: Option<i64>,
+    pub connection_run_id: Option<i64>,
 }
 
 #[allow(dead_code)]
@@ -67,6 +68,7 @@ pub struct UpdateSyncEvent {
     pub last_error: Option<serde_json::Value>,
     pub last_errored_date: Option<chrono::DateTime<chrono::Utc>>,
     pub connection_sync_state_id: Option<i64>,
+    pub connection_run_id: Option<i64>,
 }
 
 #[allow(dead_code)]
@@ -74,6 +76,7 @@ pub struct UpdateSyncEvent {
 pub struct SyncEventFilter {
     pub inventory_record_event_id: Option<i64>,
     pub connection_sync_state_id: Option<i64>,
+    pub connection_run_id: Option<i64>,
     pub sync_event_method: Option<SyncEventMethod>,
     pub sync_event_category: Option<SyncEventCategory>,
     pub status: Option<SyncEventStatus>,
@@ -155,6 +158,20 @@ impl SyncEventService {
         }
     }
 
+    pub async fn get_by_connection_run_id(
+        &self,
+        connection_run_id: i64,
+        txn: Option<&DatabaseTransaction>,
+    ) -> Result<Vec<sync_event::Model>, DbErr> {
+        let query = sync_event::Entity::find()
+            .filter(sync_event::Column::ConnectionRunId.eq(connection_run_id))
+            .order_by_desc(sync_event::Column::CreatedAt);
+        match txn {
+            Some(txn) => query.all(txn).await,
+            None => query.all(&self.db).await,
+        }
+    }
+
     pub async fn get_all(
         &self,
         page: u64,
@@ -171,6 +188,9 @@ impl SyncEventService {
             if let Some(id) = f.connection_sync_state_id {
                 condition =
                     condition.add(sync_event::Column::ConnectionSyncStateId.eq(id));
+            }
+            if let Some(id) = f.connection_run_id {
+                condition = condition.add(sync_event::Column::ConnectionRunId.eq(id));
             }
             if let Some(m) = f.sync_event_method {
                 condition = condition.add(sync_event::Column::SyncEventMethod.eq(m));
@@ -230,6 +250,7 @@ impl SyncEventService {
             last_error: Set(data.last_error),
             last_errored_date: Set(data.last_errored_date.map(Into::into)),
             connection_sync_state_id: Set(data.connection_sync_state_id),
+            connection_run_id: Set(data.connection_run_id),
             ..Default::default()
         };
         match txn {
@@ -284,6 +305,9 @@ impl SyncEventService {
         }
         if patch.connection_sync_state_id.is_some() {
             active.connection_sync_state_id = Set(patch.connection_sync_state_id);
+        }
+        if patch.connection_run_id.is_some() {
+            active.connection_run_id = Set(patch.connection_run_id);
         }
         active.updated_at = Set(chrono::Utc::now().into());
         match txn {

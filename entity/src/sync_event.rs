@@ -32,10 +32,19 @@ pub struct Model {
     pub last_error: Option<Json>,
     pub last_errored_date: Option<DateTimeWithTimeZone>,
     pub connection_sync_state_id: Option<i64>,
+    pub connection_run_id: Option<i64>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+    #[sea_orm(
+        belongs_to = "super::connection_run::Entity",
+        from = "Column::ConnectionRunId",
+        to = "super::connection_run::Column::Id",
+        on_update = "Cascade",
+        on_delete = "SetNull"
+    )]
+    ConnectionRun,
     #[sea_orm(
         belongs_to = "super::erp_connection_sync_state::Entity",
         from = "Column::ConnectionSyncStateId",
@@ -52,6 +61,12 @@ pub enum Relation {
         on_delete = "SetNull"
     )]
     InventoryRecordEvent,
+}
+
+impl Related<super::connection_run::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::ConnectionRun.def()
+    }
 }
 
 impl Related<super::erp_connection_sync_state::Entity> for Entity {

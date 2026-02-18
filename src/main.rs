@@ -50,6 +50,11 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
+    //run pending migrations (idempotent; safe on every startup)
+    migration::Migrator::up(&db, None)
+        .await
+        .expect("Failed to run migrations");
+
     //connect to Redis
     let redis = config::redis_connect()
         .await
