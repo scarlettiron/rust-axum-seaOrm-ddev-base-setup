@@ -53,68 +53,6 @@ pub enum ConnectionRunType {
     Poll,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "sync_event_direction"
-)]
-pub enum SyncEventDirection {
-    #[sea_orm(string_value = "push")]
-    Push,
-    #[sea_orm(string_value = "pull")]
-    Pull,
-}
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "sync_event_method"
-)]
-pub enum SyncEventMethod {
-    #[sea_orm(string_value = "list")]
-    List,
-    #[sea_orm(string_value = "get")]
-    Get,
-    #[sea_orm(string_value = "create")]
-    Create,
-    #[sea_orm(string_value = "update")]
-    Update,
-    #[sea_orm(string_value = "delete")]
-    Delete,
-}
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "sync_event_category"
-)]
-pub enum SyncEventCategory {
-    #[sea_orm(string_value = "inventory")]
-    Inventory,
-    #[sea_orm(string_value = "order")]
-    Order,
-    #[sea_orm(string_value = "customer")]
-    Customer,
-    #[sea_orm(string_value = "other")]
-    Other,
-}
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
-#[sea_orm(
-    rs_type = "String",
-    db_type = "Enum",
-    enum_name = "sync_event_status"
-)]
-pub enum SyncEventStatus {
-    #[sea_orm(string_value = "pending")]
-    Pending,
-    #[sea_orm(string_value = "in_progress")]
-    InProgress,
-    #[sea_orm(string_value = "success")]
-    Success,
-    #[sea_orm(string_value = "error")]
-    Error,
-}
-#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "currency")]
 pub enum Currency {
     #[sea_orm(string_value = "usd")]
@@ -235,6 +173,60 @@ pub enum ErpProviderType {
     Idoc,
     #[sea_orm(string_value = "webconnector")]
     Webconnector,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "sync_event_category"
+)]
+pub enum SyncEventCategory {
+    #[sea_orm(string_value = "inventory")]
+    Inventory,
+    #[sea_orm(string_value = "order")]
+    Order,
+    #[sea_orm(string_value = "customer")]
+    Customer,
+    #[sea_orm(string_value = "other")]
+    Other,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(
+    rs_type = "String",
+    db_type = "Enum",
+    enum_name = "sync_event_direction"
+)]
+pub enum SyncEventDirection {
+    #[sea_orm(string_value = "push")]
+    Push,
+    #[sea_orm(string_value = "pull")]
+    Pull,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "sync_event_method")]
+pub enum SyncEventMethod {
+    #[sea_orm(string_value = "list")]
+    List,
+    #[sea_orm(string_value = "get")]
+    Get,
+    #[sea_orm(string_value = "create")]
+    Create,
+    #[sea_orm(string_value = "update")]
+    Update,
+    #[sea_orm(string_value = "delete")]
+    Delete,
+}
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
+#[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "sync_event_status")]
+pub enum SyncEventStatus {
+    #[sea_orm(string_value = "pending")]
+    Pending,
+    #[sea_orm(string_value = "in_progress")]
+    InProgress,
+    #[sea_orm(string_value = "success")]
+    Success,
+    #[sea_orm(string_value = "error")]
+    Error,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "system_id_key")]
