@@ -197,10 +197,10 @@ pub enum SyncEventCategory {
     enum_name = "sync_event_direction"
 )]
 pub enum SyncEventDirection {
-    #[sea_orm(string_value = "push")]
-    Push,
-    #[sea_orm(string_value = "pull")]
-    Pull,
+    #[sea_orm(string_value = "push_to_external")]
+    PushToExternal,
+    #[sea_orm(string_value = "pull_from_external")]
+    PullFromExternal,
 }
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "Enum", enum_name = "sync_event_method")]

@@ -42,6 +42,10 @@ pub fn create_router(state: AppState) -> Router {
             "/client-systems/quickbooks/desktop",
             crate::client_systems::quickbooks::desktop::create_router(),
         )
+        .nest(
+            "/poll/v1",
+            crate::client_systems::quickbooks::desktop::create_poll_router(),
+        )
         .route("/", get(healthcheck))
         .with_state(state);
 

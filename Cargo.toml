@@ -29,6 +29,7 @@ migration = { path = "migration" } # for running migrations at startup
 utoipa = { version = "5.4.0", features = ["axum_extras", "chrono"] }
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum"] }
 prometheus = "0.14.0"
+quick-xml = "0.37"
 
 
 [dev-dependencies]
