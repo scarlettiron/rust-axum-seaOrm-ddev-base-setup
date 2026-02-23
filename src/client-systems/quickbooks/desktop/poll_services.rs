@@ -39,8 +39,8 @@ use entity::{
 use quick_xml::events::Event;
 use quick_xml::Reader;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, DbErr, EntityTrait,
-    QueryFilter, QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, Condition, DatabaseConnection, DatabaseTransaction, DbErr,
+    EntityTrait, QueryFilter, QueryOrder, Set, TransactionTrait,
 };
 use serde_json::{json, Value};
 use uuid::Uuid;
@@ -147,9 +147,14 @@ impl QbdPollService {
         let (conn, _creds) = self.validate_credentials(username, password).await?;
         let sync_state = self.ensure_sync_state(conn.id).await?;
 
+        // Build the cursor XML now (before we mutate the event).
+        let cursor = sync_state.sync_cursor.clone();
+        let xml = build_item_inventory_query_xml(cursor.as_ref());
+
         let run_svc = ConnectionRunService::new(self.db.clone());
         let sync_event_svc = SyncEventService::new(self.db.clone());
 
+        let txn = self.db.begin().await?;
         // Find the ONE recurring List/Inventory event for this connection that
         // is ready to be processed (Pending or Error).
         let maybe_event = sync_event::Entity::find()
@@ -161,12 +166,8 @@ impl QbdPollService {
             .filter(sync_event::Column::ConnectionSyncStateId.eq(sync_state.id))
             .filter(sync_event::Column::SyncEventMethod.eq(SyncEventMethod::List))
             .filter(sync_event::Column::SyncEventCategory.eq(SyncEventCategory::Inventory))
-            .one(&self.db)
+            .one(&txn)
             .await?;
-
-        // Build the cursor XML now (before we mutate the event).
-        let cursor = sync_state.sync_cursor.clone();
-        let xml = build_item_inventory_query_xml(cursor.as_ref());
 
         match maybe_event {
             None => {
@@ -179,7 +180,7 @@ impl QbdPollService {
                             run_type: Some(ConnectionRunType::Poll),
                             error_message: None,
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await?;
 
@@ -199,7 +200,7 @@ impl QbdPollService {
                             connection_sync_state_id: Some(sync_state.id),
                             connection_run_id: Some(run.id),
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await?;
             }
@@ -214,7 +215,7 @@ impl QbdPollService {
                             run_type: Some(ConnectionRunType::Poll),
                             error_message: None,
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await?;
 
@@ -236,11 +237,13 @@ impl QbdPollService {
                             last_errored_date: None,
                             connection_sync_state_id: None,
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await;
             }
         }
+
+        txn.commit().await?;
 
         Ok(PollRequestOutput {
             has_work: true,
@@ -294,7 +297,7 @@ impl QbdPollService {
         // ── QBD returned an error ─────────────────────────────────────────────
         if let Some(ref err_msg) = input.qbd_error {
             let err_body = json!({ "message": err_msg });
-
+            let txn = self.db.begin().await?;
             if let Some(ref ev) = event {
                 let _ = sync_event_svc
                     .update_by_uuid(
@@ -313,11 +316,10 @@ impl QbdPollService {
                             connection_sync_state_id: None,
                             connection_run_id: None,
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await;
             }
-
             if let Some(ref r) = run {
                 let _ = run_svc
                     .update_by_uuid(
@@ -326,11 +328,11 @@ impl QbdPollService {
                             status: Some(ConnectionRunStatus::Error),
                             error_message: Some(err_msg.clone()),
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await;
             }
-
+            txn.commit().await?;
             return Ok(PollResponseOutput { has_more: false });
         }
 
@@ -344,8 +346,10 @@ impl QbdPollService {
             Ok(p) => p,
             Err(e) => {
                 let msg = format!("XML parse error: {e}");
-                self.mark_event_and_run_error(&event, &run, &msg, &sync_event_svc, &run_svc)
+                let txn = self.db.begin().await?;
+                self.mark_event_and_run_error(&event, &run, &msg, &sync_event_svc, &run_svc, Some(&txn))
                     .await;
+                let _ = txn.commit().await;
                 return Err(QbdPollError::XmlParse(msg));
             }
         };
@@ -356,22 +360,14 @@ impl QbdPollService {
                 "QBD status {}: {}",
                 parsed.status_code, parsed.status_message
             );
-            self.mark_event_and_run_error(&event, &run, &msg, &sync_event_svc, &run_svc)
+            let txn = self.db.begin().await?;
+            self.mark_event_and_run_error(&event, &run, &msg, &sync_event_svc, &run_svc, Some(&txn))
                 .await;
+            let _ = txn.commit().await;
             return Err(QbdPollError::XmlParse(msg));
         }
 
-        // ── Upsert inventory items ────────────────────────────────────────────
-        let mut errors: Vec<String> = Vec::new();
-        for item in &parsed.items {
-            if let Err(e) = self.upsert_inventory_item(&conn, item).await {
-                errors.push(format!("ListID={}: {:?}", item.list_id, e));
-            }
-        }
-
-        // ── Update cursor in sync_state ───────────────────────────────────────
-        // remaining_count > 0 → store iteratorID so next sendRequestXML uses Continue.
-        // remaining_count = 0 → clear cursor so next poll starts fresh with iterator="Start".
+        // ── Upsert inventory items + update cursor + mark event/run in one transaction ──
         let new_cursor = if parsed.remaining_count > 0 {
             Some(json!({
                 "iterator_id": parsed.iterator_id,
@@ -381,27 +377,27 @@ impl QbdPollService {
             None
         };
 
-        {
-            let sync_state_svc = ErpConnectionSyncStateService::new(self.db.clone());
-            if let Ok(Some(ss)) = sync_state_svc.get_by_id(sync_state.id, None).await {
-                // Direct ActiveModel update so we can set cursor to NULL.
-                let mut active: erp_connection_sync_state::ActiveModel = ss.into();
-                active.sync_cursor = Set(new_cursor);
-                active.updated_at = Set(chrono::Utc::now().into());
-                let _ = active.update(&self.db).await;
+        let txn = self.db.begin().await?;
+        let mut errors: Vec<String> = Vec::new();
+        for item in &parsed.items {
+            if let Err(e) = self.upsert_inventory_item(&conn, item, Some(&txn)).await {
+                errors.push(format!("ListID={}: {:?}", item.list_id, e));
             }
         }
 
-        // ── Mark sync event and run ───────────────────────────────────────────
-        let has_errors = !errors.is_empty();
+        let sync_state_svc = ErpConnectionSyncStateService::new(self.db.clone());
+        if let Ok(Some(ss)) = sync_state_svc.get_by_id(sync_state.id, Some(&txn)).await {
+            let mut active: erp_connection_sync_state::ActiveModel = ss.into();
+            active.sync_cursor = Set(new_cursor);
+            active.updated_at = Set(chrono::Utc::now().into());
+            let _ = active.update(&txn).await;
+        }
 
+        let has_errors = !errors.is_empty();
         if let Some(ref ev) = event {
             let is_list = ev.sync_event_method == SyncEventMethod::List;
-
             let (new_status, last_error) = if has_errors {
                 let err_body = json!({ "errors": errors });
-                // List events go back to Pending even with partial errors so they
-                // are retried; error info is preserved.
                 let status = if is_list {
                     SyncEventStatus::Pending
                 } else {
@@ -409,8 +405,6 @@ impl QbdPollService {
                 };
                 (status, Some(err_body))
             } else {
-                // List events: Pending so the next sendRequestXML picks them up.
-                // Other events: Success.
                 let status = if is_list {
                     SyncEventStatus::Pending
                 } else {
@@ -418,7 +412,6 @@ impl QbdPollService {
                 };
                 (status, None)
             };
-
             let _ = sync_event_svc
                 .update_by_uuid(
                     ev.uuid,
@@ -440,11 +433,10 @@ impl QbdPollService {
                         connection_sync_state_id: None,
                         connection_run_id: None,
                     },
-                    None,
+                    Some(&txn),
                 )
                 .await;
         }
-
         if has_errors {
             if let Some(ref r) = run {
                 let _ = run_svc
@@ -454,14 +446,13 @@ impl QbdPollService {
                             status: Some(ConnectionRunStatus::Error),
                             error_message: Some(errors.join("; ")),
                         },
-                        None,
+                        Some(&txn),
                     )
                     .await;
             }
         }
+        txn.commit().await?;
 
-        // has_more = true  → adapter returns 100 to QBWC (call sendRequestXML again immediately)
-        // has_more = false → adapter returns 0 to QBWC (stop until next scheduled poll)
         Ok(PollResponseOutput {
             has_more: parsed.remaining_count > 0,
         })
@@ -539,21 +530,29 @@ impl QbdPollService {
         &self,
         conn: &connection_identity::Model,
         item: &QbdInventoryItem,
+        txn: Option<&DatabaseTransaction>,
     ) -> Result<(), QbdPollError> {
         let inv_svc = InventoryRecordService::new(self.db.clone());
         let evt_svc = InventoryRecordEventService::new(self.db.clone());
 
         // Look up the canonical inventory record by QBD ListID.
-        let record = inventory_record::Entity::find()
-            .filter(inventory_record::Column::SystemIdKey.eq(SystemIdKey::Qbd))
-            .filter(inventory_record::Column::SystemId.eq(&item.list_id))
-            .filter(inventory_record::Column::OriginatingConnectionId.eq(conn.id))
-            .one(&self.db)
-            .await?;
+        let record = match txn {
+            Some(t) => inventory_record::Entity::find()
+                .filter(inventory_record::Column::SystemIdKey.eq(SystemIdKey::Qbd))
+                .filter(inventory_record::Column::SystemId.eq(&item.list_id))
+                .filter(inventory_record::Column::OriginatingConnectionId.eq(conn.id))
+                .one(t)
+                .await?,
+            None => inventory_record::Entity::find()
+                .filter(inventory_record::Column::SystemIdKey.eq(SystemIdKey::Qbd))
+                .filter(inventory_record::Column::SystemId.eq(&item.list_id))
+                .filter(inventory_record::Column::OriginatingConnectionId.eq(conn.id))
+                .one(&self.db)
+                .await?,
+        };
 
         let record = match record {
             Some(r) => {
-                // Refresh the raw body on the parent record.
                 let _ = inv_svc
                     .update_by_id(
                         r.id,
@@ -562,7 +561,7 @@ impl QbdPollService {
                             system_id_key: None,
                             system_id: None,
                         },
-                        None,
+                        txn,
                     )
                     .await;
                 r
@@ -577,19 +576,26 @@ impl QbdPollService {
                             system_id_key: SystemIdKey::Qbd,
                             system_id: item.list_id.clone(),
                         },
-                        None,
+                        txn,
                     )
                     .await?
             }
         };
 
-        // Find the most recent event for this record + connection.
-        let existing_event = inventory_record_event::Entity::find()
-            .filter(inventory_record_event::Column::InventoryRecordId.eq(record.id))
-            .filter(inventory_record_event::Column::ConnectionId.eq(conn.id))
-            .order_by_desc(inventory_record_event::Column::CreatedAt)
-            .one(&self.db)
-            .await?;
+        let existing_event = match txn {
+            Some(t) => inventory_record_event::Entity::find()
+                .filter(inventory_record_event::Column::InventoryRecordId.eq(record.id))
+                .filter(inventory_record_event::Column::ConnectionId.eq(conn.id))
+                .order_by_desc(inventory_record_event::Column::CreatedAt)
+                .one(t)
+                .await?,
+            None => inventory_record_event::Entity::find()
+                .filter(inventory_record_event::Column::InventoryRecordId.eq(record.id))
+                .filter(inventory_record_event::Column::ConnectionId.eq(conn.id))
+                .order_by_desc(inventory_record_event::Column::CreatedAt)
+                .one(&self.db)
+                .await?,
+        };
 
         match existing_event {
             Some(ev) => {
@@ -606,7 +612,7 @@ impl QbdPollService {
                             qty: item.qty_on_hand,
                             external_code: item.full_name.clone(),
                         },
-                        None,
+                        txn,
                     )
                     .await;
             }
@@ -625,7 +631,7 @@ impl QbdPollService {
                             qty: item.qty_on_hand,
                             external_code: item.full_name.clone(),
                         },
-                        None,
+                        txn,
                     )
                     .await?;
             }
@@ -642,6 +648,7 @@ impl QbdPollService {
         message: &str,
         sync_event_svc: &SyncEventService,
         run_svc: &ConnectionRunService,
+        txn: Option<&DatabaseTransaction>,
     ) {
         let err_body = json!({ "message": message });
 
@@ -663,7 +670,7 @@ impl QbdPollService {
                         connection_sync_state_id: None,
                         connection_run_id: None,
                     },
-                    None,
+                    txn,
                 )
                 .await;
         }
@@ -676,7 +683,7 @@ impl QbdPollService {
                         status: Some(ConnectionRunStatus::Error),
                         error_message: Some(message.to_string()),
                     },
-                    None,
+                    txn,
                 )
                 .await;
         }
